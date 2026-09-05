@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Testcontainers.MsSql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DurableLinq\DurableLinq.csproj" />
+    <ProjectReference Include="..\..\src\DurableLinq.Hosting\DurableLinq.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\DurableLinq.SqlServer\DurableLinq.SqlServer.csproj" />
+    <ProjectReference Include="..\DurableLinq.Tests\DurableLinq.Tests.csproj" />
+  </ItemGroup>
+</Project>

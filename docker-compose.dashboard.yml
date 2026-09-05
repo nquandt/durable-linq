@@ -1,0 +1,13 @@
+services:
+  durable-dashboard:
+    build:
+      context: .
+      dockerfile: src/DurableLinq.Dashboard.Host/Dockerfile
+    image: durablelinq-dashboard
+    ports:
+      - "8080:8080"
+    environment:
+      DURABLE_STORE: file
+      DURABLE_CONNECTION: /data
+    volumes:
+      - ./workflow-state:/data

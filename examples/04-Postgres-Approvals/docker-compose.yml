@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: durable, POSTGRES_PASSWORD: durable, POSTGRES_DB: durable }
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U durable"]
+      interval: 2s
+      retries: 30
+
+  app:
+    build: { context: ../.., dockerfile: examples/04-Postgres-Approvals/Dockerfile }
+    environment:
+      POSTGRES: "Host=postgres;Port=5432;Username=durable;Password=durable;Database=durable"
+    ports: ["5004:5004"]
+    depends_on:
+      postgres: { condition: service_healthy }

@@ -1,0 +1,20 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  worker-1:
+    build: { context: ../.., dockerfile: examples/03-Redis-Workers/Dockerfile }
+    environment: { REDIS: "redis:6379", WORKER_NAME: "worker-1" }
+    depends_on: [redis]
+
+  worker-2:
+    build: { context: ../.., dockerfile: examples/03-Redis-Workers/Dockerfile }
+    environment: { REDIS: "redis:6379", WORKER_NAME: "worker-2" }
+    depends_on: [redis]
+
+  dashboard:
+    build: { context: ../.., dockerfile: src/DurableLinq.Dashboard.Host/Dockerfile }
+    environment: { DURABLE_STORE: "redis", DURABLE_CONNECTION: "redis:6379" }
+    ports: ["8080:8080"]
+    depends_on: [redis]

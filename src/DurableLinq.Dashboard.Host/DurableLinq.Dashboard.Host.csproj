@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <Description>Standalone dashboard host that connects to any DurableLinq store via environment variables.</Description>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DurableLinq\DurableLinq.csproj" />
+    <ProjectReference Include="..\DurableLinq.Hosting\DurableLinq.Hosting.csproj" />
+    <ProjectReference Include="..\DurableLinq.Dashboard\DurableLinq.Dashboard.csproj" />
+    <ProjectReference Include="..\DurableLinq.Postgres\DurableLinq.Postgres.csproj" />
+    <ProjectReference Include="..\DurableLinq.SqlServer\DurableLinq.SqlServer.csproj" />
+    <ProjectReference Include="..\DurableLinq.Redis\DurableLinq.Redis.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,32 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/examples/">
+    <Project Path="examples/01-Console-FileStore/01-Console-FileStore.csproj" />
+    <Project Path="examples/02-WebApi-Hosting/02-WebApi-Hosting.csproj" />
+    <Project Path="examples/03-Redis-Workers/03-Redis-Workers.csproj" />
+    <Project Path="examples/04-Postgres-Approvals/04-Postgres-Approvals.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/DurableLinq.Analyzers/DurableLinq.Analyzers.csproj" />
+    <Project Path="src/DurableLinq.Dashboard.Host/DurableLinq.Dashboard.Host.csproj" />
+    <Project Path="src/DurableLinq.Dashboard/DurableLinq.Dashboard.csproj" />
+    <Project Path="src/DurableLinq.Hosting/DurableLinq.Hosting.csproj" />
+    <Project Path="src/DurableLinq.Postgres/DurableLinq.Postgres.csproj" />
+    <Project Path="src/DurableLinq.Redis/DurableLinq.Redis.csproj" />
+    <Project Path="src/DurableLinq.SqlServer/DurableLinq.SqlServer.csproj" />
+    <Project Path="src/DurableLinq/DurableLinq.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DurableLinq.Analyzers.Tests/DurableLinq.Analyzers.Tests.csproj" />
+    <Project Path="tests/DurableLinq.Dashboard.Tests/DurableLinq.Dashboard.Tests.csproj" />
+    <Project Path="tests/DurableLinq.Examples.Tests/DurableLinq.Examples.Tests.csproj" />
+    <Project Path="tests/DurableLinq.Postgres.Tests/DurableLinq.Postgres.Tests.csproj" />
+    <Project Path="tests/DurableLinq.Redis.Tests/DurableLinq.Redis.Tests.csproj" />
+    <Project Path="tests/DurableLinq.SqlServer.Tests/DurableLinq.SqlServer.Tests.csproj" />
+    <Project Path="tests/DurableLinq.Tests/DurableLinq.Tests.csproj" />
+  </Folder>
+</Solution>

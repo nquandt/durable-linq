@@ -1,0 +1,102 @@
+name: Release
+
+# Versioning strategy (see docs/release-process.md):
+#   - Push a tag "vX.Y.Z" on main  -> packages get version X.Y.Z and publish to nuget.org.
+#   - Push/merge to main otherwise -> packages get a "-preview.N+sha" version and publish
+#     to this repo's GitHub Packages feed only, never to nuget.org.
+# MinVer (wired up in Directory.Build.props) computes the version from git tags; this
+# workflow does not set the version itself, it only decides where to publish.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  pack:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      is-release: ${{ steps.kind.outputs.is-release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # MinVer needs full history to find the nearest tag
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Determine release kind
+        id: kind
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v*.*.* ]]; then
+            echo "is-release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is-release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Pack
+        run: dotnet pack -c Release -o ./artifacts/nuget
+
+      - name: Show computed versions
+        run: ls ./artifacts/nuget
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/nuget/*.nupkg
+
+  publish-preview:
+    needs: pack
+    if: needs.pack.outputs.is-release == 'false' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/nuget
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Push preview packages to GitHub Packages
+        run: |
+          dotnet nuget add source --username "$GITHUB_ACTOR" --password "${{ secrets.GITHUB_TOKEN }}" \
+            --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          dotnet nuget push "./artifacts/nuget/*.nupkg" --source github --skip-duplicate
+
+  publish-release:
+    needs: pack
+    if: needs.pack.outputs.is-release == 'true'
+    runs-on: ubuntu-latest
+    environment: nuget-release
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/nuget
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Push release packages to nuget.org
+        run: dotnet nuget push "./artifacts/nuget/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "${{ secrets.NUGET_API_KEY }}" --skip-duplicate

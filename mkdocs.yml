@@ -1,0 +1,70 @@
+site_name: DurableLinq
+site_description: Durable execution for .NET, written as a C# query expression or an async method.
+site_url: https://nquandt.github.io/durable-linq/
+repo_url: https://github.com/nquandt/durable-linq
+repo_name: nquandt/durable-linq
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - content.action.edit
+    - search.suggest
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Quick start: getting-started.md
+      - Two ways to write a workflow: two-forms.md
+  - Concepts:
+      - Why this shape: concepts/why-this-shape.md
+      - How the engine works: concepts/how-it-works.md
+      - Primitives: concepts/primitives.md
+      - Failures and validation: concepts/failures-and-validation.md
+  - Architecture:
+      - Packages and design: architecture/design.md
+      - Keys, the runner, and versioning: architecture/runner-and-keys.md
+      - Store interface: architecture/store-interface.md
+  - Stores:
+      - Overview: stores/index.md
+      - File and in-memory: stores/file-and-in-memory.md
+      - Redis: stores/redis.md
+      - PostgreSQL: stores/postgres.md
+      - SQL Server: stores/sqlserver.md
+  - Dashboard: dashboard.md
+  - Analyzers: analyzers.md
+  - Examples:
+      - Overview: examples/index.md
+  - Contributing: contributing.md
+  - Release process: release-process.md

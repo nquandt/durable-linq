@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>DurableLinq Dashboard</title>
+<style>
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --border: #dde1e6; --text: #1b1f24; --muted: #6b7280;
+  --accent: #2563eb; --running: #b45309; --completed: #15803d; --failed: #b91c1c; --code-bg: #f0f1f4;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #14161a; --panel: #1c1f24; --border: #2c3038; --text: #e6e8eb; --muted: #9aa1ab;
+    --accent: #60a5fa; --running: #eab308; --completed: #4ade80; --failed: #f87171; --code-bg: #10121500; }
+  :root { --code-bg: #101215; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.4 -apple-system, Segoe UI, Roboto, sans-serif; }
+a { color: var(--accent); }
+button { font: inherit; cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--text); border-radius: 4px; padding: 4px 10px; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+button.danger { color: var(--failed); }
+input, select, textarea { font: inherit; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; }
+.layout { display: grid; grid-template-columns: 220px 1fr; height: 100vh; }
+.sidebar { border-right: 1px solid var(--border); padding: 14px; overflow-y: auto; }
+.sidebar h1 { font-size: 15px; margin: 0 0 12px; }
+.counts { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.count-row { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--border); }
+.count-row .n { font-weight: 600; }
+.count-row.running .n { color: var(--running); }
+.count-row.completed .n { color: var(--completed); }
+.count-row.failed .n { color: var(--failed); }
+.sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 10px 0 6px; }
+.wf-item { display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
+.wf-item:hover { background: var(--code-bg); }
+.wf-item.active { background: var(--accent); color: #fff; }
+.main { display: flex; flex-direction: column; min-width: 0; }
+.toolbar { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.toolbar .spacer { flex: 1; }
+.content { flex: 1; overflow: hidden; display: flex; min-height: 0; }
+table.instances { width: 100%; border-collapse: collapse; }
+.table-wrap { flex: 1; overflow: auto; }
+table.instances th, table.instances td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+table.instances th { position: sticky; top: 0; background: var(--bg); color: var(--muted); font-weight: 500; }
+table.instances tr:hover { background: var(--code-bg); cursor: pointer; }
+table.instances tr.selected { background: var(--code-bg); outline: 1px solid var(--accent); }
+.badge { padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.badge.Running { color: var(--running); background: color-mix(in srgb, var(--running) 15%, transparent); }
+.badge.Completed { color: var(--completed); background: color-mix(in srgb, var(--completed) 15%, transparent); }
+.badge.Failed { color: var(--failed); background: color-mix(in srgb, var(--failed) 15%, transparent); }
+.detail { width: 460px; border-left: 1px solid var(--border); overflow-y: auto; padding: 14px; flex-shrink: 0; }
+.detail h2 { font-size: 14px; margin: 0 0 4px; word-break: break-all; }
+.kv { display: grid; grid-template-columns: 90px 1fr; gap: 3px 8px; margin: 10px 0; font-size: 12px; }
+.kv div.k { color: var(--muted); }
+pre.json { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 8px; overflow: auto; max-height: 220px; font-size: 11.5px; white-space: pre-wrap; word-break: break-word; }
+.section-title { font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; margin: 16px 0 6px; }
+.timeline { position: relative; padding-left: 16px; border-left: 2px solid var(--border); }
+.step { margin-bottom: 14px; position: relative; }
+.step::before { content: ''; position: absolute; left: -21px; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.step.failed::before { background: var(--failed); }
+.step-head { display: flex; gap: 6px; align-items: center; font-weight: 600; }
+.step-time { color: var(--muted); font-weight: 400; font-size: 11px; }
+.step.failed .step-head { color: var(--failed); }
+.badge.replay { font-size: 10px; padding: 0 5px; border-radius: 8px; background: var(--code-bg); color: var(--muted); border: 1px solid var(--border); }
+.empty { color: var(--muted); text-align: center; padding: 40px; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.signal-form { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.signal-form textarea { min-height: 60px; font-family: ui-monospace, monospace; }
+.confirm-btn.armed { background: var(--failed); color: #fff; border-color: var(--failed); }
+label.toggle { display: flex; align-items: center; gap: 4px; color: var(--muted); }
+.err { color: var(--failed); font-size: 12px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h1>DurableLinq</h1>
+    <div class="counts">
+      <div class="count-row running"><span>Running</span><span class="n" id="cRunning">0</span></div>
+      <div class="count-row completed"><span>Completed</span><span class="n" id="cCompleted">0</span></div>
+      <div class="count-row failed"><span>Failed</span><span class="n" id="cFailed">0</span></div>
+    </div>
+    <h2>Workflows</h2>
+    <div id="wfList"></div>
+  </div>
+  <div class="main">
+    <div class="toolbar">
+      <input id="fSearch" placeholder="Search instance id..." />
+      <select id="fStatus">
+        <option value="">Any status</option>
+        <option>Running</option>
+        <option>Completed</option>
+        <option>Failed</option>
+      </select>
+      <div class="spacer"></div>
+      <label class="toggle"><input type="checkbox" id="fAuto" checked /> auto-refresh</label>
+      <button id="btnRefresh">Refresh</button>
+    </div>
+    <div class="content">
+      <div class="table-wrap">
+        <table class="instances">
+          <thead><tr><th>Status</th><th>Workflow</th><th>v</th><th>Instance</th><th>Created</th><th>Updated</th><th>Lease</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="detail" id="detail"><div class="empty">Select an instance</div></div>
+    </div>
+  </div>
+</div>
+<script>
+const prefix = location.pathname.replace(/\/$/, '');
+const api = p => fetch(prefix + p).then(r => r.ok ? r.json() : r.text().then(t => Promise.reject(t)));
+const apiSend = (p, method, body) => fetch(prefix + p, {
+  method, headers: body ? {'content-type':'application/json'} : undefined, body: body ? JSON.stringify(body) : undefined
+}).then(async r => { if (!r.ok) throw await r.text(); return r; });
+
+let selectedKey = null;
+let selectedWorkflow = '';
+let autoTimer = null;
+
+function fmtTime(s) { if (!s) return ''; const d = new Date(s); return d.toLocaleString(); }
+function esc(s) { return (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function pretty(json) {
+  if (!json) return '';
+  try { return JSON.stringify(JSON.parse(json), null, 2); } catch { return json; }
+}
+
+async function loadSummary() {
+  const s = await api('/api/summary');
+  document.getElementById('cRunning').textContent = s.byStatus.Running || 0;
+  document.getElementById('cCompleted').textContent = s.byStatus.Completed || 0;
+  document.getElementById('cFailed').textContent = s.byStatus.Failed || 0;
+  const list = document.getElementById('wfList');
+  list.innerHTML = '';
+  const allItem = document.createElement('div');
+  allItem.className = 'wf-item' + (selectedWorkflow === '' ? ' active' : '');
+  allItem.innerHTML = `<span>All</span><span>${s.total}</span>`;
+  allItem.onclick = () => { selectedWorkflow = ''; loadSummary(); loadInstances(); };
+  list.appendChild(allItem);
+  for (const w of s.byWorkflow) {
+    const el = document.createElement('div');
+    el.className = 'wf-item' + (selectedWorkflow === w.workflow ? ' active' : '');
+    el.innerHTML = `<span>${esc(w.workflow)}</span><span>${w.count}</span>`;
+    el.onclick = () => { selectedWorkflow = w.workflow; loadSummary(); loadInstances(); };
+    list.appendChild(el);
+  }
+}
+
+async function loadInstances() {
+  const q = new URLSearchParams();
+  if (selectedWorkflow) q.set('workflow', selectedWorkflow);
+  const status = document.getElementById('fStatus').value;
+  if (status) q.set('status', status);
+  const search = document.getElementById('fSearch').value.trim();
+  if (search) q.set('q', search);
+  q.set('limit', '200');
+  const items = await api('/api/instances?' + q.toString());
+  const tbody = document.getElementById('rows');
+  tbody.innerHTML = '';
+  for (const h of items) {
+    const tr = document.createElement('tr');
+    if (h.key === selectedKey) tr.className = 'selected';
+    tr.innerHTML = `
+      <td><span class="badge ${h.status}">${h.status}</span></td>
+      <td>${esc(h.workflowName)}</td>
+      <td>${h.version}</td>
+      <td title="${esc(h.key)}">${esc(h.instanceId)}</td>
+      <td>${fmtTime(h.createdAt)}</td>
+      <td>${fmtTime(h.updatedAt)}</td>
+      <td>${h.isLeased ? esc(h.leaseOwner) : ''}</td>`;
+    tr.onclick = () => selectInstance(h.key);
+    tbody.appendChild(tr);
+  }
+}
+
+async function selectInstance(key) {
+  selectedKey = key;
+  await loadInstances();
+  const detail = document.getElementById('detail');
+  detail.innerHTML = '<div class="empty">Loading...</div>';
+  let data;
+  try { data = await api('/api/instances/' + encodeURIComponent(key).replace(/%2F/g, '/')); }
+  catch (e) { detail.innerHTML = `<div class="err">${esc(e)}</div>`; return; }
+  const h = data.header;
+
+  let html = `<h2>${esc(h.instanceId)}</h2>`;
+  html += `<div class="kv">
+    <div class="k">Key</div><div>${esc(h.key)}</div>
+    <div class="k">Status</div><div><span class="badge ${h.status}">${h.status}</span></div>
+    <div class="k">Workflow</div><div>${esc(h.workflowName)} v${h.version}</div>
+    <div class="k">Created</div><div>${fmtTime(h.createdAt)}</div>
+    <div class="k">Updated</div><div>${fmtTime(h.updatedAt)}</div>
+    <div class="k">Lease</div><div>${h.isLeased ? esc(h.leaseOwner) + ' until ' + fmtTime(h.leaseExpires) : '-'}</div>
+  </div>`;
+
+  html += `<div class="section-title">Input</div><pre class="json">${esc(pretty(h.inputJson)) || '(none)'}</pre>`;
+  if (h.resultJson) html += `<div class="section-title">Result</div><pre class="json">${esc(pretty(h.resultJson))}</pre>`;
+  if (h.errorJson) html += `<div class="section-title">Error</div><pre class="json">${esc(pretty(h.errorJson))}</pre>`;
+
+  html += `<div class="section-title">Actions</div><div class="actions">
+    ${h.status === 'Failed' ? '<button class="primary" id="btnRetry">Retry</button>' : ''}
+    <button id="btnDelete" class="danger">Delete</button>
+  </div>`;
+
+  html += `<div class="section-title">Send signal</div>
+    <div class="signal-form">
+      <input id="sigName" placeholder="signal name" />
+      <textarea id="sigPayload" placeholder='payload JSON, e.g. true or {"ok":1}'></textarea>
+      <div><button id="btnSignal">Send</button></div>
+    </div>`;
+
+  html += `<div class="section-title">Steps (${data.steps.length})</div><div class="timeline">`;
+  for (const s of data.steps) {
+    html += `<div class="step ${s.failed ? 'failed' : ''}">
+      <div class="step-head">#${s.seq} ${esc(s.name)} ${s.failed ? '<span class="badge Failed">failed</span>' : ''}
+        <span class="step-time">${fmtTime(s.recordedAt)}</span>
+      </div>
+      ${s.payloadJson ? `<pre class="json">${esc(pretty(s.payloadJson))}</pre>` : ''}
+    </div>`;
+  }
+  html += `</div>`;
+  if (data.steps.length === 0) html = html.replace('<div class="timeline"></div>', '<div class="empty">No steps recorded</div>');
+
+  detail.innerHTML = html;
+
+  const retryBtn = document.getElementById('btnRetry');
+  if (retryBtn) retryBtn.onclick = async () => {
+    try { await apiSend(`/api/instances/${key}/retry`, 'POST'); selectInstance(key); loadSummary(); }
+    catch (e) { alertInline(e); }
+  };
+
+  let deleteArmed = false;
+  const delBtn = document.getElementById('btnDelete');
+  delBtn.onclick = async () => {
+    if (!deleteArmed) { deleteArmed = true; delBtn.textContent = 'Confirm delete?'; delBtn.classList.add('confirm-btn', 'armed'); return; }
+    try {
+      await apiSend(`/api/instances/${key}`, 'DELETE');
+      selectedKey = null;
+      document.getElementById('detail').innerHTML = '<div class="empty">Select an instance</div>';
+      loadInstances(); loadSummary();
+    } catch (e) { alertInline(e); }
+  };
+
+  document.getElementById('btnSignal').onclick = async () => {
+    const name = document.getElementById('sigName').value.trim();
+    const payloadJson = document.getElementById('sigPayload').value;
+    if (!name) return;
+    try { await apiSend(`/api/instances/${key}/signal`, 'POST', { name, payloadJson }); selectInstance(key); }
+    catch (e) { alertInline(e); }
+  };
+}
+
+function alertInline(e) {
+  const detail = document.getElementById('detail');
+  const div = document.createElement('div');
+  div.className = 'err';
+  div.textContent = typeof e === 'string' ? e : (e.message || 'Request failed');
+  detail.prepend(div);
+}
+
+document.getElementById('btnRefresh').onclick = () => { loadInstances(); loadSummary(); };
+document.getElementById('fStatus').onchange = loadInstances;
+document.getElementById('fSearch').addEventListener('input', debounce(loadInstances, 300));
+document.getElementById('fAuto').onchange = setupAutoRefresh;
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function setupAutoRefresh() {
+  if (autoTimer) clearInterval(autoTimer);
+  if (document.getElementById('fAuto').checked) {
+    autoTimer = setInterval(() => { loadInstances(); loadSummary(); }, 3000);
+  }
+}
+
+loadSummary();
+loadInstances();
+setupAutoRefresh();
+</script>
+</body>
+</html>

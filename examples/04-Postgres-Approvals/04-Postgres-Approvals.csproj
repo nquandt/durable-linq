@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>PostgresApprovals</RootNamespace>
+    <AssemblyName>PostgresApprovals</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DurableLinq\DurableLinq.csproj" />
+    <ProjectReference Include="..\..\src\DurableLinq.Hosting\DurableLinq.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\DurableLinq.Postgres\DurableLinq.Postgres.csproj" />
+    <ProjectReference Include="..\..\src\DurableLinq.Dashboard\DurableLinq.Dashboard.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DurableLinq.Analyzers\DurableLinq.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

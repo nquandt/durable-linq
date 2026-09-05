@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Optional web dashboard for DurableLinq: inspect, signal, retry, and delete workflow instances.</Description>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DurableLinq\DurableLinq.csproj" />
+    <ProjectReference Include="..\DurableLinq.Hosting\DurableLinq.Hosting.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="dashboard.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>
