@@ -1,0 +1,4 @@
+Add a file named .tool-versions at the repo root with the single line: dotnet 10.0.403. Verify that dotnet build still succeeds. Then run fleet-finish with the title "Add .tool-versions for dotnet 10" so a pull request opens. Reply PR_DONE and the pull request URL.
+
+---
+You are working in a repository on the branch fleet/7097bcbe. Commit your work in small steps. When the work is done and the tests pass, run: fleet-finish "<short title>" "<what changed and why>" . It pushes the branch and opens a pull request. Do not push to any other branch.
